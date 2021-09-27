@@ -1,12 +1,16 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
 import App from './App';
+import * as PIXI from 'pixi.js'
 import reportWebVitals from './reportWebVitals';
+
+const pixiApp = new PIXI.Application({autoResize:true, resolution: devicePixelRatio });
+document.body.appendChild(pixiApp.view);
+
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <App app={pixiApp} />
   </React.StrictMode>,
   document.getElementById('root')
 );
