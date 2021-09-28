@@ -72,6 +72,10 @@ let connectWallet = async() => {
   web3Accounts = accounts;
 }
 
+let tileClicked = (tileNumber) => {
+  alert("clicked on " + tileNumber);
+}
+
 let setupGrid = (position) => {
   let grid = new PIXI.Sprite.from("/images/grid.png");
   grid.width = 500;
@@ -80,32 +84,24 @@ let setupGrid = (position) => {
   grid.y = position.y;
   grid.anchor.set(0.5);
 
-  // let frame = new PIXI.Graphics();
-  // //frame.beginFill(0x666666);
-  // frame.lineStyle({ color: 0xffffff, width: 1, alignment: 0 });
-  // frame.drawRect(0, 0, grid.width / 5, 208);
-  //frame.position.set(320 - 100, 180 - 100);
-  //grid.addChild(frame);
-  // let frame = new PIXI.Graphics();
-  // frame.beginFill(0x666666);
-  // frame.lineStyle({ color: 0xffffff, width: 10, alignment: 0 });
-  // frame.drawRect(0, 0, 100, 100);
-  // frame.position.set((frame.width / 5)  * 1, (frame.width / 5) * 1);
-  // grid.addChild(frame);
-  //Add grids to the box.
-  let texture;
+  var tileId = 1;
   for(var i = 0; i < 10; i++)
   {
-    
     for(var j = 0; j < 10; j++)
     {
-      let frame = new PIXI.Graphics();
-      let tileUnit = 108;
-      //frame.beginFill(0x666666);
-      frame.lineStyle({ color: 0xffffff, width: 2, alignment: 0 });
-      frame.drawRect(0, 0, tileUnit, tileUnit);
-      frame.position.set((tileUnit * j) - (tileUnit * 5), tileUnit * i - (tileUnit * 5));
-      grid.addChild(frame);
+      (function(tId) {
+        let frame = new PIXI.Graphics();
+        let tileUnit = 108;
+        frame.beginFill(0x00000);
+        frame.lineStyle({ color: 0xffffff, width: 2, alignment: 0 });
+        frame.drawRect(0, 0, tileUnit, tileUnit);
+        frame.interactive = true;
+        frame.buttonMode = true;
+        frame.on("pointerup", ()=>tileClicked(tId));
+        frame.position.set((tileUnit * j) - (tileUnit * 5), tileUnit * i - (tileUnit * 5));
+        grid.addChild(frame);
+       })(tileId)
+       tileId++;
     }
   }
   return grid;
