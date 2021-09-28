@@ -1,4 +1,4 @@
-const pageScroll = () => {
+const noScroll = () => {
 
     console.log("Hello Pagescroll")
    // 2017 recommended event
@@ -16,11 +16,14 @@ const pageScroll = () => {
       event.preventDefault()
    }, false);
 
-document.body.style.overflowX = 'hidden';
+document.body.style.overflow = 'hidden';
 document.body.style.margin = '0px';
+document.body.style.padding = '0px';
+
+
 }
 
 
   
-  export default pageScroll;
+  export default noScroll;
   
