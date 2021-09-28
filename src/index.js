@@ -93,7 +93,7 @@ let setupGrid = (position) => {
         let frame = new PIXI.Graphics();
         let tileUnit = 108;
         frame.beginFill(0x00000);
-        frame.lineStyle({ color: 0xffffff, width: 2, alignment: 0 });
+        frame.lineStyle({ color: 0xffffff, width: 1.5, alignment: 0, alpha:0.5 });
         frame.drawRect(0, 0, tileUnit, tileUnit);
         frame.interactive = true;
         frame.buttonMode = true;
