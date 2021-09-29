@@ -24,6 +24,9 @@ let startButton;
 let logoImage;
 let playerGrid;
 let opponentGrid;
+let playerShips;
+let opponentShips;
+let tileUnit = 108;
 
 //FUNCTIONS
 let createButton = (texture) =>
@@ -91,7 +94,6 @@ let setupGrid = (position) => {
     {
       (function(tId) {
         let frame = new PIXI.Graphics();
-        let tileUnit = 108;
         frame.beginFill(0x00000);
         frame.lineStyle({ color: 0xffffff, width: 1.5, alignment: 0, alpha:0.5 });
         frame.drawRect(0, 0, tileUnit, tileUnit);
@@ -120,6 +122,21 @@ let checkWalletConntection = () =>
   }
 }
 
+let setupShips = (forPlayer) =>{
+  let battleship = PIXI.Sprite.from("/images/battleship.png");
+  let carrier = PIXI.Sprite.from("/images/carrier.png");
+  let alpha = 0.5;
+  battleship.alpha = alpha;
+  carrier.alpha = alpha;
+  playerShips = {};
+  playerShips.battleship = battleship;
+  playerShips.carrier = carrier;
+  carrier.x -= tileUnit
+
+  playerGrid.addChild(battleship);
+  playerGrid.addChild(carrier);
+
+}
 
 
 
@@ -168,10 +185,11 @@ mainScreen.addChild(mainScreenBackground);
 //setup Grids
 playerGrid = setupGrid({x: (app.view.width / 2) - 300, y: 400});
 opponentGrid = setupGrid({x: (app.view.width / 2) + 300, y: 400});
-
-
 mainScreen.addChild(playerGrid);
 mainScreen.addChild(opponentGrid);
+
+//Setup Ships
+setupShips(true);
 
 //Setup the text
 titleText = new PIXI.Text("Blockchain Battleship");
