@@ -33,6 +33,7 @@ let shipSpaces = { carrier: 5, battleship: 4, cruiser: 3, submarine: 3, destroye
 let animateShipCounter = 0;
 let playerTileMap = {};
 let opponentTileMap = {};
+let playerActiveTiles = [];
 
 //FUNCTIONS
 let createButton = (texture) => {
@@ -134,7 +135,10 @@ let createShip = (shipType) => {
   let ship = PIXI.Sprite.from(path);
   ship.alpha = 0.5;
   ship.interactive = true;
-  ship.anchor.set(0.5)
+  ship.anchor.set(0.5);
+  ship.attrs = {};
+  ship.attrs["name"] = shipType;
+  ship.attrs["spaces"] = shipSpaces[shipType]
   ship.on('mousedown', (e) => onDragStart(e, ship))
     .on('touchstart', (e) => onDragStart(e, ship))
     .on('mouseup', (e) => onDragEnd(e, ship))
@@ -143,6 +147,8 @@ let createShip = (shipType) => {
     .on('touchendoutside', (e) => onDragEnd(e, ship))
     .on('mousemove', (e) => onDragMove(e, ship))
     .on('touchmove', (e) => onDragMove(e, ship));
+  let yOffset = ship.attrs.spaces % 2 == 0 ? tileUnit : tileUnit / 2;
+  ship.y += yOffset;
   return ship;
 }
 
@@ -156,6 +162,7 @@ let setupShips = (forPlayer) => {
   let cruiser = createShip("cruiser");
   let destroyer = createShip("destroyer");
   let submarine = createShip("submarine");
+
 
 
   //Set position
@@ -192,6 +199,7 @@ let setupShips = (forPlayer) => {
 }
 
 
+
 let animateShips = (delta) => {
   if (initPlayerShips) {
     animateShipCounter += delta;
@@ -221,14 +229,21 @@ let onDragMove = (e, obj) => {
     if(newPosition.x >520 || newPosition.y >520 || newPosition.x<-520 || newPosition.y<-520) return;
     console.log("Player Tile Map",playerTileMap);
     console.log("Opponent Tile Map",opponentTileMap);
+    console.log("Ship Attr", obj.attrs)
 
+    //disable the previously highlighted tiles
+    for(var i = 0; i < playerActiveTiles.length; i++)
+    {
+      playerActiveTiles[i].alpha = 0;
+    }
     playerTileMap[tilePosition].alpha = 0.5;
+    playerActiveTiles.push(playerTileMap[tilePosition]);
     console.log("New Position", newPosition);
     console.log("tile", tilePosition);
 
-
+    let yOffset = obj.attrs.spaces % 2 == 0 ? tileUnit : tileUnit / 2;
     obj.position.x = playerTileMap[tilePosition].x + (tileUnit / 2);
-    obj.position.y = playerTileMap[tilePosition].y + (tileUnit / 2);
+    obj.position.y = playerTileMap[tilePosition].y + yOffset;
   
  
   }
