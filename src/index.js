@@ -11,6 +11,22 @@ noScroll();
 
 
 
+//CONSTANTS
+const SHIP_TYPE = {
+	CARRIER: "carrier",
+	BATTLESHIP: "battleship",
+	CRUISER: "cruiser",
+	SUBMARINE: "submarine",
+  DESTROYER: "destroyer"
+}
+
+const AXIS = {
+	X: "x",
+	Y: "y",
+	Z: "z",
+}
+
+
 //VARIABLES
 let web3Accounts;
 let ticker;
@@ -157,11 +173,11 @@ let setupShips = (forPlayer) => {
   let grid;
   let ships;
 
-  let battleship = createShip("battleship");
-  let carrier = createShip("carrier");
-  let cruiser = createShip("cruiser");
-  let destroyer = createShip("destroyer");
-  let submarine = createShip("submarine");
+  let battleship = createShip(SHIP_TYPE.BATTLESHIP);
+  let carrier = createShip(SHIP_TYPE.CARRIER);
+  let cruiser = createShip(SHIP_TYPE.CRUISER);
+  let destroyer = createShip(SHIP_TYPE.DESTROYER);
+  let submarine = createShip(SHIP_TYPE.SUBMARINE);
 
 
 
@@ -222,6 +238,15 @@ let onDragStart = (e, obj) => {
   obj.dragging = true;
 }
 
+let clearActiveTiles = (forPlayer) =>
+{
+ //disable the previously highlighted tiles
+ for(var i = 0; i < playerActiveTiles.length; i++)
+ {
+   playerActiveTiles[i].alpha = 0;
+ }
+}
+
 let onDragMove = (e, obj) => {
   if (obj.dragging) {
     var newPosition = obj.data.getLocalPosition(obj.parent);
@@ -231,19 +256,20 @@ let onDragMove = (e, obj) => {
     console.log("Opponent Tile Map",opponentTileMap);
     console.log("Ship Attr", obj.attrs)
 
-    //disable the previously highlighted tiles
-    for(var i = 0; i < playerActiveTiles.length; i++)
-    {
-      playerActiveTiles[i].alpha = 0;
-    }
-    playerTileMap[tilePosition].alpha = 0.5;
-    playerActiveTiles.push(playerTileMap[tilePosition]);
-    console.log("New Position", newPosition);
-    console.log("tile", tilePosition);
 
     let yOffset = obj.attrs.spaces % 2 == 0 ? tileUnit : tileUnit / 2;
     obj.position.x = playerTileMap[tilePosition].x + (tileUnit / 2);
     obj.position.y = playerTileMap[tilePosition].y + yOffset;
+    
+    clearActiveTiles();
+    playerTileMap[tilePosition].alpha = 0.5;
+    playerActiveTiles.push(playerTileMap[tilePosition]);
+    let occupiedTiles = getOccupiedTilesOnDrag(obj.attrs.name, AXIS.Y, tilePosition);
+    for(var i = 0; i<occupiedTiles.length; i++)
+    {
+      playerTileMap[occupiedTiles[i]].alpha = 0.5;
+      playerActiveTiles.push(playerTileMap[occupiedTiles[i]]);
+    }
   
  
   }
@@ -254,6 +280,8 @@ let onDragEnd = (e, obj) => {
   obj.alpha = 0.5;
   obj.dragging = false;
   obj.data = null;
+  clearActiveTiles();
+
 }
 
 let getTileFromPosition = ({ x, y }, tX, tY) => {
@@ -265,11 +293,49 @@ let getTileFromPosition = ({ x, y }, tX, tY) => {
   x = x >= 0 ? x + (tX / 2) : x + (tX / 2) + 1
   y = y >= 0 ? y + (tY / 2) : y + (tY / 2) + 1
 
-
-
   return ((x * y) + (tX - x) * (y - 1))
 }
 
+let getOccupiedTilesOnDrag = (shipType, axis, activeTile) =>
+{
+  let firstTilePosition;
+  let incrementor;
+  let numberOfTiles;
+  let occupiedTiles = [];
+
+  switch(axis)
+  {
+    case AXIS.X:
+      incrementor = 1;
+      break;
+    case AXIS.Y:
+      incrementor = 10;
+      break;
+  }
+  switch(shipType){
+    case SHIP_TYPE.BATTLESHIP:
+      firstTilePosition = axis == AXIS.X ? activeTile - 1 : activeTile - 10;
+      break;
+    case SHIP_TYPE.CRUISER:
+      firstTilePosition = axis == AXIS.X ? activeTile - 1 : activeTile - 10;
+      break;
+    case SHIP_TYPE.CARRIER:
+      firstTilePosition = axis == AXIS.X ? activeTile - 2 : activeTile - 20;
+      break;
+    case SHIP_TYPE.SUBMARINE:
+      firstTilePosition = axis == AXIS.X ? activeTile - 1 : activeTile - 10;
+      break;
+    case SHIP_TYPE.DESTROYER:
+      firstTilePosition = axis == AXIS.X ? activeTile  : activeTile;
+      break;
+  }
+
+  for(var i = 0; i < shipSpaces[shipType]; i++)
+  {
+    occupiedTiles.push(firstTilePosition + (incrementor * i));
+  }
+  return occupiedTiles;
+}
 
 
 
