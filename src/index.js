@@ -45,11 +45,13 @@ let opponentShips = {};
 let tileUnit = 108;
 let initPlayerShips;
 let initOpponentShips;
-let shipSpaces = { carrier: 5, battleship: 4, cruiser: 3, submarine: 3, destroyer: 2 };
+const shipSpaces = { carrier: 5, battleship: 4, cruiser: 3, submarine: 3, destroyer: 2 };
 let animateShipCounter = 0;
 let playerTileMap = {};
 let opponentTileMap = {};
 let playerActiveTiles = [];
+let playerOccupiedTiles = {};
+let canDropShip = false;
 
 //FUNCTIONS
 let createButton = (texture) => {
@@ -188,6 +190,14 @@ let setupShips = (forPlayer) => {
   destroyer.x -= tileUnit * 3.5;
   submarine.x -= tileUnit * 4.5;
 
+  //Fill in the player occupied tiles
+  playerOccupiedTiles[SHIP_TYPE.BATTLESHIP] = getOccupiedTilesOnDrag(SHIP_TYPE.BATTLESHIP, AXIS.Y, 65);
+  playerOccupiedTiles[SHIP_TYPE.CARRIER] = getOccupiedTilesOnDrag(SHIP_TYPE.CARRIER, AXIS.Y, 64);
+  playerOccupiedTiles[SHIP_TYPE.CRUISER] = getOccupiedTilesOnDrag(SHIP_TYPE.CRUISER, AXIS.Y, 63);
+  playerOccupiedTiles[SHIP_TYPE.DESTROYER] = getOccupiedTilesOnDrag(SHIP_TYPE.DESTROYER, AXIS.Y, 62);
+  playerOccupiedTiles[SHIP_TYPE.CRUISER] = getOccupiedTilesOnDrag(SHIP_TYPE.CRUISER, AXIS.Y, 61);
+
+
 
   if (forPlayer) {
     initPlayerShips = true;
@@ -260,18 +270,42 @@ let onDragMove = (e, obj) => {
     let yOffset = obj.attrs.spaces % 2 == 0 ? tileUnit : tileUnit / 2;
     obj.position.x = playerTileMap[tilePosition].x + (tileUnit / 2);
     obj.position.y = playerTileMap[tilePosition].y + yOffset;
-    
-    clearActiveTiles();
-    playerTileMap[tilePosition].alpha = 0.5;
-    playerActiveTiles.push(playerTileMap[tilePosition]);
     let occupiedTiles = getOccupiedTilesOnDrag(obj.attrs.name, AXIS.Y, tilePosition);
-    for(var i = 0; i<occupiedTiles.length; i++)
-    {
-      playerTileMap[occupiedTiles[i]].alpha = 0.5;
-      playerActiveTiles.push(playerTileMap[occupiedTiles[i]]);
+
+    displayActiveTiiles(occupiedTiles);
+   
+  }
+}
+
+let displayActiveTiiles = (tiles) => 
+{
+  clearActiveTiles();
+  let allOccupiedTiles = playerOccupiedTiles[SHIP_TYPE.BATTLESHIP]
+  .concat(playerOccupiedTiles[SHIP_TYPE.CARRIER])
+  .concat(playerOccupiedTiles[SHIP_TYPE.CRUISER])
+  .concat(playerOccupiedTiles[SHIP_TYPE.DESTROYER])
+  .concat(playerOccupiedTiles[SHIP_TYPE.SUBMARINE])
+  canDropShip = true;
+
+  for(var i = 0; i<tiles.length; i++)
+  {
+    if(tiles[i] > 100 || tiles[i] < 0) {
+      canDropShip = false;
+      continue;
     }
-  
- 
+    if(allOccupiedTiles.includes(tiles[i])){
+      canDropShip = false;
+    }
+  }
+  let color = canDropShip ? 0xFF0000 : 0x00FF00;
+  for(var i = 0; i<tiles.length; i++)
+  {
+    if(tiles[i] > 100 || tiles[i] < 0){
+      continue;
+    } 
+    playerTileMap[tiles[i]].alpha = 0.5;
+    playerTileMap[tiles[i]].color = color;
+    playerActiveTiles.push(playerTileMap[tiles[i]]);
   }
 }
 
@@ -280,6 +314,8 @@ let onDragEnd = (e, obj) => {
   obj.alpha = 0.5;
   obj.dragging = false;
   obj.data = null;
+  console.log(canDropShip)
+  playerOccupiedTiles[obj.attrs.name] = [playerActiveTiles];
   clearActiveTiles();
 
 }
