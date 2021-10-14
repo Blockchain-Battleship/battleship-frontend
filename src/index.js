@@ -264,12 +264,28 @@ let freeUpPreviousShipLocationOnDrag = (shipType) =>
   playerOccupiedTiles[shipType] = [];
 }
 
+let clampShipPosition = (tilePosition, shipType, axis, worldPosition) =>
+{
+  let tiles = getOccupiedTilesOnDrag(shipType, axis, tilePosition);
+  if(worldPosition.x >520 || worldPosition.y >520 || worldPosition.x<-520 || worldPosition.y<-520) return false;
+
+  for(var i = 0; i < tiles.length; i++)
+  {
+    if(tiles[i] < 1 || tiles[i] > 100) return false;
+  }
+  return true;
+}
+
 let onDragMove = (e, obj) => {
   if (obj.dragging) {
     freeUpPreviousShipLocationOnDrag(obj.attrs.name);
     var newPosition = obj.data.getLocalPosition(obj.parent);
     let tilePosition = getTileFromPosition(newPosition, 10, 10);
-    if(newPosition.x >520 || newPosition.y >520 || newPosition.x<-520 || newPosition.y<-520) return;
+
+
+    if(!clampShipPosition(tilePosition, obj.attrs.name, AXIS.Y, newPosition)) return;
+    
+
     console.log("Player Tile Map",playerTileMap);
     console.log("Opponent Tile Map",opponentTileMap);
     console.log("Ship Attr", obj.attrs)
