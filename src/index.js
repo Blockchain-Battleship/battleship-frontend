@@ -154,6 +154,9 @@ let createShip = (shipType) => {
   ship.attrs["name"] = shipType;
   ship.attrs["spaces"] = shipSpaces[shipType]
   ship.attrs["occupiedTiles"] = [];
+  ship.attrs["newCenterTile"] = 0;
+
+
   ship.on('mousedown', (e) => onDragStart(e, ship))
     .on('touchstart', (e) => onDragStart(e, ship))
     .on('mouseup', (e) => onDragEnd(e, ship))
@@ -192,8 +195,14 @@ let setupShips = (forPlayer) => {
   playerOccupiedTiles[SHIP_TYPE.CARRIER] = getOccupiedTilesOnDrag(SHIP_TYPE.CARRIER, AXIS.Y, 64);
   playerOccupiedTiles[SHIP_TYPE.CRUISER] = getOccupiedTilesOnDrag(SHIP_TYPE.CRUISER, AXIS.Y, 63);
   playerOccupiedTiles[SHIP_TYPE.DESTROYER] = getOccupiedTilesOnDrag(SHIP_TYPE.DESTROYER, AXIS.Y, 62);
-  playerOccupiedTiles[SHIP_TYPE.CRUISER] = getOccupiedTilesOnDrag(SHIP_TYPE.CRUISER, AXIS.Y, 61);
+  playerOccupiedTiles[SHIP_TYPE.SUBMARINE] = getOccupiedTilesOnDrag(SHIP_TYPE.SUBMARINE, AXIS.Y, 61);
 
+
+  battleship.attrs["centerTile"] = 55;
+  carrier.attrs["centerTile"] = 54;
+  cruiser.attrs["centerTile"] = 53;
+  destroyer.attrs["centerTile"] = 52;
+  submarine.attrs["centerTile"] = 51;
 
 
   if (forPlayer) {
@@ -277,6 +286,14 @@ let clampShipPosition = (tilePosition, shipType, axis, worldPosition) =>
   return true;
 }
 
+let moveShipToTilePosition = (ship, tilePosition, axis) => 
+{
+  let yOffset = ship.attrs.spaces % 2 == 0 ? tileUnit : tileUnit / 2;
+  ship.position.x = playerTileMap[tilePosition].x + (tileUnit / 2);
+  ship.position.y = playerTileMap[tilePosition].y + yOffset;
+ 
+}
+
 let onDragMove = (e, obj) => {
   if (obj.dragging) {
     freeUpPreviousShipLocationOnDrag(obj.attrs.name);
@@ -288,12 +305,13 @@ let onDragMove = (e, obj) => {
     
 
 
+    moveShipToTilePosition(obj, tilePosition, AXIS.Y)
+ 
 
-    let yOffset = obj.attrs.spaces % 2 == 0 ? tileUnit : tileUnit / 2;
-    obj.position.x = playerTileMap[tilePosition].x + (tileUnit / 2);
-    obj.position.y = playerTileMap[tilePosition].y + yOffset;
+
     let occupiedTiles = getOccupiedTilesOnDrag(obj.attrs.name, AXIS.Y, tilePosition);
     obj.attrs.occupiedTiles = occupiedTiles;
+    obj.attrs.newCenterTile = tilePosition;
     displayActiveTiiles(occupiedTiles);
     console.log("Drag move")
   }
@@ -343,8 +361,16 @@ let onDragEnd = (e, obj) => {
   obj.alpha = 0.5;
   obj.dragging = false;
   obj.data = null;
-  playerOccupiedTiles[obj.attrs.name] = obj.attrs.occupiedTiles;
   clearActiveTiles();
+  if(!canDropShip)
+  {
+    moveShipToTilePosition(obj, obj.attrs.centerTile, AXIS.Y);
+    playerOccupiedTiles[obj.attrs.name] = getOccupiedTilesOnDrag(obj.attrs.name,AXIS.Y,obj.attrs.centerTile);
+    return
+  }
+  obj.attrs.centerTile = obj.attrs.newCenterTile;
+  console.log(obj.attrs.centerTile)
+  playerOccupiedTiles[obj.attrs.name] = obj.attrs.occupiedTiles;
   console.log("Drag end!");
   console.log(playerOccupiedTiles[obj.attrs.name])
 }
@@ -359,6 +385,7 @@ let getTileFromPosition = ({ x, y }, tX, tY) => {
 
   return ((x * y) + (tX - x) * (y - 1))
 }
+
 
 let getOccupiedTilesOnDrag = (shipType, axis, activeTile) =>
 {
