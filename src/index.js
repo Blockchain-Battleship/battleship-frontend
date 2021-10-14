@@ -89,7 +89,8 @@ let connectWallet = async () => {
     window.web3 = new Web3(window.web3.currentProvider)
   }
   else {
-    window.alert('non Ethereum browser detected. Download Metamask')
+    window.alert('non Ethereum browser detected. Download Metamask');
+    return;
   }
   const web3 = window.web3;
   let accounts = await window.web3.eth.getAccounts(); // or requestAccounts()
@@ -98,7 +99,7 @@ let connectWallet = async () => {
 }
 
 let tileClicked = (tileNumber) => {
-  alert("clicked on " + tileNumber);
+  console.log("clicked on " + tileNumber);
 }
 
 let setupGrid = (position, forPlayer) => {
@@ -139,8 +140,8 @@ let setupGrid = (position, forPlayer) => {
 let checkWalletConntection = () => {
   if (!web3Accounts || web3Accounts.length == 0) {
     console.log("not connected");
-    startButton.visible = false;
-    connnectWalletButton.visible = true;
+    startButton.visible = true;
+    connnectWalletButton.visible = false;
   } else {
     console.log("connected")
     startButton.visible = true;
@@ -257,8 +258,15 @@ let clearActiveTiles = (forPlayer) =>
  }
 }
 
+let freeUpPreviousShipLocationOnDrag = (shipType) =>
+{
+  //Make the previous location of the ship available for dropping
+  playerOccupiedTiles[shipType] = [];
+}
+
 let onDragMove = (e, obj) => {
   if (obj.dragging) {
+    freeUpPreviousShipLocationOnDrag(obj.attrs.name);
     var newPosition = obj.data.getLocalPosition(obj.parent);
     let tilePosition = getTileFromPosition(newPosition, 10, 10);
     if(newPosition.x >520 || newPosition.y >520 || newPosition.x<-520 || newPosition.y<-520) return;
@@ -273,9 +281,9 @@ let onDragMove = (e, obj) => {
     let occupiedTiles = getOccupiedTilesOnDrag(obj.attrs.name, AXIS.Y, tilePosition);
 
     displayActiveTiiles(occupiedTiles);
-   
   }
 }
+
 
 let displayActiveTiiles = (tiles) => 
 {
@@ -303,8 +311,14 @@ let displayActiveTiiles = (tiles) =>
     if(tiles[i] > 100 || tiles[i] < 0){
       continue;
     } 
+    const color = new PIXI.filters.ColorMatrixFilter();
+    if(canDropShip){
+      color.saturate();
+    }else{
+      color.desaturate();
+    }
     playerTileMap[tiles[i]].alpha = 0.5;
-    playerTileMap[tiles[i]].color = color;
+    playerTileMap[tiles[i]].filters = [color];
     playerActiveTiles.push(playerTileMap[tiles[i]]);
   }
 }
