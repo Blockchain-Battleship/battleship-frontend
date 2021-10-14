@@ -68,7 +68,6 @@ let createButton = (texture) => {
 let switchContainer = (view = "main") => {
   titleScreen.visible = false;
   mainScreen.visible = false;
-  console.log("view is ", view);
   switch (view) {
     case "title":
       titleScreen.visible = true;
@@ -94,12 +93,10 @@ let connectWallet = async () => {
   }
   const web3 = window.web3;
   let accounts = await window.web3.eth.getAccounts(); // or requestAccounts()
-  console.log(accounts);
   web3Accounts = accounts;
 }
 
 let tileClicked = (tileNumber) => {
-  console.log("clicked on " + tileNumber);
 }
 
 let setupGrid = (position, forPlayer) => {
@@ -139,11 +136,9 @@ let setupGrid = (position, forPlayer) => {
 
 let checkWalletConntection = () => {
   if (!web3Accounts || web3Accounts.length == 0) {
-    console.log("not connected");
     startButton.visible = true;
     connnectWalletButton.visible = false;
   } else {
-    console.log("connected")
     startButton.visible = true;
     connnectWalletButton.visible = false;
   }
@@ -158,6 +153,7 @@ let createShip = (shipType) => {
   ship.attrs = {};
   ship.attrs["name"] = shipType;
   ship.attrs["spaces"] = shipSpaces[shipType]
+  ship.attrs["occupiedTiles"] = [];
   ship.on('mousedown', (e) => onDragStart(e, ship))
     .on('touchstart', (e) => onDragStart(e, ship))
     .on('mouseup', (e) => onDragEnd(e, ship))
@@ -264,6 +260,11 @@ let freeUpPreviousShipLocationOnDrag = (shipType) =>
   playerOccupiedTiles[shipType] = [];
 }
 
+let changeShipAxis = (shipType, tilePosition) => 
+{
+
+}
+
 let clampShipPosition = (tilePosition, shipType, axis, worldPosition) =>
 {
   let tiles = getOccupiedTilesOnDrag(shipType, axis, tilePosition);
@@ -286,17 +287,15 @@ let onDragMove = (e, obj) => {
     if(!clampShipPosition(tilePosition, obj.attrs.name, AXIS.Y, newPosition)) return;
     
 
-    console.log("Player Tile Map",playerTileMap);
-    console.log("Opponent Tile Map",opponentTileMap);
-    console.log("Ship Attr", obj.attrs)
 
 
     let yOffset = obj.attrs.spaces % 2 == 0 ? tileUnit : tileUnit / 2;
     obj.position.x = playerTileMap[tilePosition].x + (tileUnit / 2);
     obj.position.y = playerTileMap[tilePosition].y + yOffset;
     let occupiedTiles = getOccupiedTilesOnDrag(obj.attrs.name, AXIS.Y, tilePosition);
-
+    obj.attrs.occupiedTiles = occupiedTiles;
     displayActiveTiiles(occupiedTiles);
+    console.log("Drag move")
   }
 }
 
@@ -344,17 +343,16 @@ let onDragEnd = (e, obj) => {
   obj.alpha = 0.5;
   obj.dragging = false;
   obj.data = null;
-  console.log(canDropShip)
-  playerOccupiedTiles[obj.attrs.name] = [playerActiveTiles];
+  playerOccupiedTiles[obj.attrs.name] = obj.attrs.occupiedTiles;
   clearActiveTiles();
-
+  console.log("Drag end!");
+  console.log(playerOccupiedTiles[obj.attrs.name])
 }
 
 let getTileFromPosition = ({ x, y }, tX, tY) => {
   x = Math.round(x / 102)
   y = Math.round(y / 102)
 
-  console.log("======", { x, y })
 
   x = x >= 0 ? x + (tX / 2) : x + (tX / 2) + 1
   y = y >= 0 ? y + (tY / 2) : y + (tY / 2) + 1
